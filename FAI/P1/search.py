@@ -200,48 +200,33 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    from util import PriorityQueue
     from collections import defaultdict
-
-    fringe = PriorityQueue()
-    visited = set()
+    fringe = util.PriorityQueue()
     distance = defaultdict(lambda: float('inf'))
     parents = {}
 
     start_state = problem.getStartState()
-    fringe.push((start_state, None, 0), heuristic(start_state, problem))  # Initialize distance with 0
+    fringe.push(start_state, heuristic(start_state, problem))
     distance[start_state] = 0
 
     while not fringe.isEmpty():
-        current_state, action, current_cost = fringe.pop()
-
-        if current_state in visited:
-            continue
-
-        visited.add(current_state)
+        current_state = fringe.pop()
 
         if problem.isGoalState(current_state):
-            # Backtrack to get the list of actions
             path = []
-            while current_state in parents:
-                next_state, action = parents[current_state]
-                path.append(action)
+            while current_state != start_state:
+                next_state, side = parents[current_state]
+                path.append(side)
                 current_state = next_state
             return path[::-1]
 
-        for next_state, action, cost in problem.getSuccessors(current_state):
-            new_distance = current_cost + cost
+        for next_state, side, cost in problem.getSuccessors(current_state):
+            new_distance = distance[current_state] + cost
 
             if new_distance < distance[next_state]:
                 distance[next_state] = new_distance
-                priority = new_distance + heuristic(next_state, problem)
-                fringe.push((next_state, action, new_distance), priority)
-                parents[next_state] = (current_state, action)
-
-    # If no solution is found
-    return []
-    # util.raiseNotDefined()
-
+                fringe.push(next_state, new_distance + heuristic(next_state, problem))
+                parents[next_state] = (current_state, side)
 
 # Abbreviations
 bfs = breadthFirstSearch
